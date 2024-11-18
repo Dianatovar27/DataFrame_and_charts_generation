@@ -1,6 +1,5 @@
 import random
 import pandas as pd
-import matplotlib.pyplot as plt
 from seaborn import color_palette
 
 hosts= []
@@ -96,4 +95,64 @@ country_enviroment.unstack()
 print(country_enviroment.head())
 
 country_enviroment.unstack().plot(kind='bar')
+plt.show()
+
+
+OS_grouped_by_country = hosts_df.groupby(['country', 'os']).size()
+OS_grouped_by_country = OS_grouped_by_country.unstack()
+
+country_counts = hosts_df['country'].value_counts()
+
+hosts_by_country_and_environment = hosts_df.groupby(['country', 'environment']).size()
+
+# Create subplots
+fig, axs = plt.subplots(2, 2, figsize=(12, 8))
+
+# Barh of Type of OS grouped by country
+
+palette_barh= color_palette(palette= 'Dark2')
+OS_grouped_by_country.plot(kind='barh', stacked=False, ax=axs[0, 0], color=palette_barh )
+axs[0, 0].set_title('Type of OS grouped by country')
+axs[0, 0].set_ylabel('Country')
+
+# Pie chart of Total Operating Systems
+
+pie_values = hosts_df.groupby(['os']).size()
+pie_labels = [f"{value}" for label, value in zip(pie_values.index, pie_values)]
+pie_index = pie_values.index 
+
+wedges, texts = axs[0, 1].pie(pie_values, labels=pie_labels, autopct=None)
+
+total = pie_values.sum()
+
+porcentajes = [] 
+for label, value in zip(pie_index, pie_values):
+    porcentaje = f"{label}: {value / total * 100:.1f}%"  
+    porcentajes.append(porcentaje)  
+
+axs[0, 1].legend(wedges, porcentajes, loc="best", bbox_to_anchor=(1, 0.5))
+axs[0, 1].set_title('Total Operating Systems')
+
+# Barh for Total hosts by country
+palette = color_palette("ch:s=.25,rot=-.25", n_colors=len(country_counts))
+
+country_counts.plot(kind='barh', stacked=False, ax=axs[1, 0], color=palette)
+axs[1, 0].set_title('Total hosts by country')
+axs[1, 0].set_xlabel('Number of hosts')
+axs[1, 0].set_ylabel('Country')
+
+for i, value in enumerate(country_counts):
+    axs[1, 0].annotate(str(value), xy=(value, i), xytext=(5, -3), textcoords='offset points')
+
+max_value = country_counts.max() 
+axs[1, 0].set_xlim(0, max_value + 100) 
+
+# bar for Hosts by country grouped by environment
+hosts_by_country_and_environment.unstack(0).plot(kind='bar', stacked=False, ax=axs[1, 1])
+axs[1, 1].set_title('Hosts by country grouped by environment')
+axs[1, 1].set_ylabel('Number of hosts')
+axs[1, 1].set_xlabel('environment')
+
+fig.tight_layout()
+
 plt.show()
